@@ -49,7 +49,6 @@
             </exclusions>
         </dependency>
 
-        <!-- WireMock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8</artifactId>
@@ -57,7 +56,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- RestAssured -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
@@ -65,7 +63,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Jetty (właściwa wersja dla WireMock 2.35.0) -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -136,7 +133,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Servlet API -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>

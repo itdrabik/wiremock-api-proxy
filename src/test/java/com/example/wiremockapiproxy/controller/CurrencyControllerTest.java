@@ -43,13 +43,20 @@ class CurrencyControllerTest {
 
     @BeforeEach
     void setupStubs() throws IOException {
-        // Wczytaj JSON z pliku
-        String jsonBody = readJsonFromFile("usdResponse.json");
-
+        // Stub dla USD
+        String usdJsonBody = readJsonFromFile("usdResponse.json");
         wireMockServer.stubFor(get(urlEqualTo("/api/exchangerates/rates/A/USD?format=json"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(jsonBody)
+                        .withBody(usdJsonBody)
+                        .withStatus(200)));
+
+        // Stub dla EUR
+        String eurJsonBody = readJsonFromFile("eurResponse.json");
+        wireMockServer.stubFor(get(urlEqualTo("/api/exchangerates/rates/A/EUR?format=json"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(eurJsonBody)
                         .withStatus(200)));
 
         // Konfiguracja RestAssured
@@ -67,7 +74,7 @@ class CurrencyControllerTest {
     }
 
     @Test
-    void testGetCurrencyRate() {
+    void testGetCurrencyRateUSD() {
         given()
                 .queryParam("code", "USD")
                 .when()
@@ -76,7 +83,20 @@ class CurrencyControllerTest {
                 .contentType("application/json")
                 .statusCode(200)
                 .body("code", equalTo("USD"))
-                .body("rates[0].mid", equalTo(4.0613F)); // Zmiana na wartość z pliku JSON
+                .body("rates[0].mid", equalTo(4.0613F));
+    }
+
+    @Test
+    void testGetCurrencyRateEUR() {
+        given()
+                .queryParam("code", "EUR")
+                .when()
+                .get("/currency")
+                .then()
+                .contentType("application/json")
+                .statusCode(200)
+                .body("code", equalTo("EUR"))
+                .body("rates[0].mid", equalTo(4.2073F));
     }
 
     private String readJsonFromFile(String fileName) throws IOException {
