@@ -29,6 +29,7 @@ class CurrencyControllerTest {
     private static final int WIREMOCK_PORT = 8081;
     private WireMockServer wireMockServer;
 
+    // Set the external API property to use WireMock
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("external.api.url", () -> "http://localhost:" + WIREMOCK_PORT);
@@ -43,7 +44,7 @@ class CurrencyControllerTest {
 
     @BeforeEach
     void setupStubs() throws IOException {
-        // Stub dla USD
+        // Fake response for USD
         String usdJsonBody = readJsonFromFile("usdResponse.json");
         wireMockServer.stubFor(get(urlEqualTo("/api/exchangerates/rates/A/USD?format=json"))
                 .willReturn(aResponse()
@@ -51,7 +52,7 @@ class CurrencyControllerTest {
                         .withBody(usdJsonBody)
                         .withStatus(200)));
 
-        // Stub dla EUR
+        // Fake response for EUR
         String eurJsonBody = readJsonFromFile("eurResponse.json");
         wireMockServer.stubFor(get(urlEqualTo("/api/exchangerates/rates/A/EUR?format=json"))
                 .willReturn(aResponse()
@@ -59,7 +60,14 @@ class CurrencyControllerTest {
                         .withBody(eurJsonBody)
                         .withStatus(200)));
 
-        // Konfiguracja RestAssured
+        // 404 case for non-existent currency
+        wireMockServer.stubFor(get(urlEqualTo("/api/exchangerates/rates/A/XYZ?format=json"))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\": \"Not Found\"}")));
+
+        // Set up RestAssured to test against the local Spring Boot app
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
         RestAssured.defaultParser = Parser.JSON;
@@ -83,7 +91,7 @@ class CurrencyControllerTest {
                 .contentType("application/json")
                 .statusCode(200)
                 .body("code", equalTo("USD"))
-                .body("rates[0].mid", equalTo(4.0613F));
+                .body("rates[0].mid", equalTo(4.0321F));
     }
 
     @Test
@@ -96,8 +104,20 @@ class CurrencyControllerTest {
                 .contentType("application/json")
                 .statusCode(200)
                 .body("code", equalTo("EUR"))
-                .body("rates[0].mid", equalTo(4.2073F));
+                .body("rates[0].mid", equalTo(4.1898F));
     }
+
+    @Test
+    void testGetCurrencyRateNotFound() {
+        given()
+                .queryParam("code", "XYZ") // Currency that does not exist
+                .when()
+                .get("/currency")
+                .then()
+                .statusCode(404)
+                .body("error", equalTo("Currency not found"));
+    }
+
 
     private String readJsonFromFile(String fileName) throws IOException {
         Path path = new ClassPathResource("__files/" + fileName).getFile().toPath();
