@@ -35,7 +35,7 @@ Ensure you have the following installed:
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/your-repo/wiremock-api-proxy.git
+   git clone https://github.com/itdrabik/wiremock-api-proxy.git
    cd wiremock-api-proxy
    ```
 
